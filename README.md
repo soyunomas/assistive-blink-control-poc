@@ -1,6 +1,6 @@
 # Assistive Blink Control - Proof of Concept (PoC)
 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/soyunomas/assistive-blink-control-poc/blob/main/LICENSE) <!-- ¡Asegúrate de añadir un archivo LICENSE con la licencia MIT! -->
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/soyunomas/assistive-blink-control-poc/blob/main/LICENSE)
 [![Status](https://img.shields.io/badge/status-Proof%20of%20Concept-orange)](.)
 [![Demo](https://img.shields.io/badge/Demo-Live-brightgreen)](https://soyunomas.github.io/assistive-blink-control-poc/parpadeo.html)
 
