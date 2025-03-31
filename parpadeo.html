@@ -3,42 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comunicación por Parpadeo - Categorías v4 (Centrado + Slider)</title>
+    <title>Comunicación por Parpadeo - v5 (Centrado + Slider + Opt. Móvil)</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             background-color: #f8f9fa;
             /* Ajustar padding superior para dejar espacio al video centrado */
-            padding-top: 210px; /* Incrementado para el video arriba */
-            padding-right: 0; /* Quitar padding derecho */
-            /* Evitar zoom en móviles al interactuar */
-            touch-action: manipulation;
+            padding-top: 210px; /* Espacio para video 180px + márgenes/borde */
+            padding-right: 0;
+            touch-action: manipulation; /* Evitar zoom en móviles */
         }
-        /* Asegurar que el body ocupe al menos el alto de la pantalla */
         html, body {
             min-height: 100vh;
-            margin: 0; /* Resetear margen por defecto */
+            margin: 0;
         }
-        #video-container { /* Cambiado de ID y estilo para centrar */
+        #video-container { /* Contenedor del video centrado */
             position: fixed;
             top: 10px;
             left: 50%;
             transform: translateX(-50%); /* Centrado horizontal */
-            width: 240px;
-            height: 180px;
+            width: 240px;  /* Ancho del video */
+            height: 180px; /* Alto del video */
             border: 2px solid #0d6efd;
             background-color: #333;
             z-index: 1000;
             overflow: hidden;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            border-radius: 5px; /* Opcional: bordes redondeados */
+            border-radius: 5px;
         }
         #webcam {
             display: block; width: 100%; height: 100%;
-            transform: scaleX(-1); object-fit: cover;
+            transform: scaleX(-1); /* Espejo para cámara frontal */
+            object-fit: cover; /* Cubrir el contenedor */
         }
-        #loading-message, #error-message {
+        #loading-message, #error-message { /* Mensajes sobre el video */
             position: absolute; top: 50%; left: 50%; width: 90%;
             transform: translate(-50%, -50%); background-color: rgba(0, 0, 0, 0.8);
             color: white; padding: 12px; border-radius: 5px;
@@ -47,7 +46,7 @@
         }
         #error-message { background-color: rgba(220, 53, 69, 0.85); display: none; }
 
-        .main-container {
+        .main-container { /* Contenedor principal del contenido */
             max-width: 950px;
             margin: 20px auto;
             padding: 20px;
@@ -58,12 +57,12 @@
         .list-container { margin-top: 20px; min-height: 200px; text-align: center; }
         .list-title { font-size: 1.3rem; font-weight: bold; color: #495057; margin-bottom: 15px; }
 
-        .item {
+        .item { /* Estilo base para categorías y palabras */
             border: 1px solid #ddd; padding: 10px 18px; margin: 6px;
             display: inline-block; min-width: 120px; text-align: center;
             font-size: 1.1rem; background-color: #fff; border-radius: 4px;
             cursor: default; transition: all 0.2s ease-in-out;
-            user-select: none;
+            user-select: none; /* Evitar selección de texto */
         }
         .item:hover { border-color: #adb5bd; }
 
@@ -71,13 +70,14 @@
         .category-item:hover { background-color: #ccecfd; border-color: #a4dffc; }
         .back-item { background-color: #fff3cd; border-color: #ffeeba; color: #856404; }
         .back-item:hover { background-color: #ffe8a1; border-color: #ffdf7e; }
-        .selected-item-highlight {
+
+        .selected-item-highlight { /* Resaltado del ítem seleccionado */
             background-color: #0d6efd; color: white; border-color: #0a58ca;
             font-weight: bold; box-shadow: 0 0 10px rgba(13, 110, 253, 0.6);
             transform: scale(1.05);
         }
 
-        #selected-word-display {
+        #selected-word-display { /* Muestra la palabra seleccionada */
             margin-top: 30px; padding: 15px; font-size: 2.2rem; font-weight: bold;
             color: #198754; text-align: center; min-height: 60px;
             background-color: #e9f5ec; border-radius: 5px; border: 1px solid #c3e6cb;
@@ -85,7 +85,7 @@
         }
         #category-list.hidden, #word-list.hidden { display: none; }
 
-        /* NUEVO: Estilos para el slider de sensibilidad */
+        /* Estilos para el slider de sensibilidad */
         .sensitivity-control {
             margin-top: 15px;
             text-align: center;
@@ -103,53 +103,40 @@
             vertical-align: middle;
             cursor: pointer;
         }
-        .sensitivity-control span {
+        .sensitivity-control span { /* Para mostrar el valor numérico */
             font-weight: bold;
             color: #0d6efd;
-            min-width: 35px; /* Espacio para el valor */
+            min-width: 35px;
             display: inline-block;
             text-align: right;
         }
 
-        /* Adaptación para pantallas más pequeñas */
+        /* Adaptación para pantallas más pequeñas (Responsividad) */
         @media (max-width: 768px) {
             body {
-                /* Ajustar padding superior para video más pequeño */
-                padding-top: 150px; /* Ajustado para video más pequeño */
+                padding-top: 150px; /* Menos espacio para video más pequeño */
             }
-            #video-container { /* Video centrado también en móvil */
-                width: 160px; /* Más pequeño */
+            #video-container { /* Video más pequeño en móviles */
+                width: 160px;
                 height: 120px;
-                /* left: 50%; transform: translateX(-50%); ya está aplicado */
             }
-             #loading-message, #error-message {
-                font-size: 0.8rem; padding: 8px;
-            }
-            .main-container {
-                width: 95%; max-width: none; margin: 10px auto; padding: 15px;
-            }
-            .item {
-                min-width: 100px; padding: 8px 12px; font-size: 1rem; margin: 4px;
-            }
+             #loading-message, #error-message { font-size: 0.8rem; padding: 8px; }
+            .main-container { width: 95%; max-width: none; margin: 10px auto; padding: 15px; }
+            .item { min-width: 100px; padding: 8px 12px; font-size: 1rem; margin: 4px; }
              #selected-word-display { font-size: 1.8rem; min-height: 50px; padding: 10px; }
-             /* Ajuste slider en móvil */
-             .sensitivity-control input[type="range"] { width: 150px; }
+             .sensitivity-control input[type="range"] { width: 150px; } /* Slider más pequeño */
         }
          @media (max-width: 480px) {
-            body { padding-top: 160px; } /* Más espacio si es necesario */
-             .item {
-                 min-width: 80px; padding: 6px 10px; font-size: 0.9rem; margin: 3px;
-             }
+            body { padding-top: 160px; } /* Un poco más de espacio si es necesario */
+             .item { min-width: 80px; padding: 6px 10px; font-size: 0.9rem; margin: 3px; }
              #selected-word-display { font-size: 1.5rem; }
-             /* Ajuste slider en móvil muy pequeño */
              .sensitivity-control input[type="range"] { width: 120px; }
-             .sensitivity-control label { display: block; margin-bottom: 5px; } /* Etiqueta arriba */
+             .sensitivity-control label { display: block; margin-bottom: 5px; } /* Etiqueta arriba en pantallas muy pequeñas */
          }
-
     </style>
 </head>
 <body>
-    <!-- Contenedor del video, ahora centrado arriba -->
+    <!-- Contenedor del video, centrado arriba -->
     <div id="video-container">
         <video id="webcam" autoplay playsinline></video>
         <div id="loading-message">Cargando...</div>
@@ -159,178 +146,244 @@
     <div class="main-container">
         <h1 class="text-center mb-4">Comunicación por Parpadeo</h1>
 
-        <!-- NUEVO: Slider de Sensibilidad -->
+        <!-- Slider de Sensibilidad -->
         <div class="sensitivity-control">
             <label for="sensitivity-slider">Sensibilidad Parpadeo:</label>
             <input type="range" id="sensitivity-slider" min="0.15" max="0.40" step="0.01" value="0.28">
             (<span id="sensitivity-value">0.28</span>)
         </div>
 
+        <!-- Contenedores para listas de categorías y palabras -->
         <div class="list-container">
             <div id="category-list">
                 <div class="list-title">Selecciona una Categoría</div>
-                <!-- Categorías se generan aquí -->
+                <!-- Categorías se generan aquí dinámicamente -->
             </div>
             <div id="word-list" class="hidden">
                 <div class="list-title">Selecciona una Palabra o Vuelve</div>
-                <!-- Palabras (y "Volver") se generan aquí -->
+                <!-- Palabras (y "Volver") se generan aquí dinámicamente -->
             </div>
         </div>
+
+        <!-- Display para la palabra seleccionada -->
         <div id="selected-word-display"></div>
     </div>
 
+    <!-- Script principal de la aplicación -->
     <script type="module">
+        // Importar dependencias de MediaPipe
         import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22-rc.20250304/+esm";
 
-        // --- DATOS ---
+        // --- DATOS DE LA APLICACIÓN ---
         const categories = [
-             { name: "Respuestas", words: ["Sí", "No", "Bien", "Mal"] },
-             { name: "Necesidades", words: ["Agua", "Comida", "Baño", "Dormir"] },
-             { name: "Sensaciones", words: ["Dolor", "Cómodo", "Incómodo", "Frío", "Calor", "Pica", "Cansado"] },
-             { name: "Acciones", words: ["Ayuda", "Mover", "Subir", "Bajar", "Quiero", "No quiero", "Más", "Menos", "Espera"] },
-             { name: "Entorno", words: ["Luz", "Tele", "Música", "Ventana", "Puerta", "Ahora", "Después", "Terminar"] },
-             { name: "Social", words: ["Hola", "Adiós", "Gracias", "Por favor"] },
-             { name: "Personas", words: ["Familia", "Doctor", "Enfermera", "Otro"] },
-             { name: "Emociones", words: ["Feliz", "Triste", "Enfadado", "Asustado", "Sorprendido"] },
-             { name: "Tiempo", words: ["Hoy", "Mañana", "Ayer", "Sol", "Lluvia", "Noche", "Día"] },
-             { name: "Lugares", words: ["Casa", "Hospital", "Calle", "Habitación", "Jardín", "Tienda"] },
-             { name: "Ropa", words: ["Camisa", "Pantalón", "Abrigo", "Manta", "Zapatos", "Gorra"] }
+            { name: "Respuestas", words: ["Sí", "No", "Bien", "Mal"] },
+            { name: "Necesidades", words: ["Agua", "Comida", "Baño", "Dormir", "Descansar"] },
+            { name: "Sensaciones", words: ["Dolor", "Cómodo", "Incómodo", "Frío", "Calor", "Pica", "Cansado", "Mareado"] },
+            { name: "Acciones", words: ["Ayuda", "Mover", "Subir", "Bajar", "Quiero", "No quiero", "Más", "Menos", "Espera", "Llamar"] },
+            { name: "Entorno", words: ["Luz", "Tele", "Música", "Ventana", "Puerta", "Ahora", "Después", "Terminar", "Silencio"] },
+            { name: "Social", words: ["Hola", "Adiós", "Gracias", "Por favor", "¿Qué tal?", "Te quiero"] },
+            { name: "Personas", words: ["Familia", "Doctor", "Enfermera", "Amigo", "Cuidador", "Otro"] },
+            { name: "Emociones", words: ["Feliz", "Triste", "Enfadado", "Asustado", "Sorprendido", "Nervioso", "Calmado"] },
+            { name: "Tiempo", words: ["Hoy", "Mañana", "Ayer", "Sol", "Lluvia", "Noche", "Día", "Pronto", "Tarde"] },
+            { name: "Lugares", words: ["Casa", "Hospital", "Calle", "Habitación", "Jardín", "Tienda", "Coche", "Fuera"] },
+            { name: "Ropa", words: ["Camisa", "Pantalón", "Abrigo", "Manta", "Zapatos", "Gorra", "Calcetines", "Pijama"] },
+            { name: "Cuerpo", words: ["Cabeza", "Brazo", "Pierna", "Espalda", "Mano", "Pie", "Ojo", "Boca"] } // Nueva categoría ejemplo
         ];
         const BACK_OPTION_TEXT = "Volver Atrás";
 
-        // --- CONSTANTES Y ESTADO ---
-        // CAMBIADO: EYE_AR_THRESH ahora es 'let' para poder modificarlo
-        let EYE_AR_THRESH = 0.28; // Valor inicial, se ajustará con el slider
-        const EYE_AR_CONSEC_FRAMES = 2;
-        const LONG_BLINK_THRESHOLD = 12;
-        const LEFT_EYE_INDICES = [362, 385, 387, 263, 373, 380];
-        const RIGHT_EYE_INDICES = [33, 160, 158, 133, 153, 144];
+        // --- CONSTANTES Y ESTADO GLOBAL ---
+        let EYE_AR_THRESH = 0.28; // Umbral de detección de parpadeo (modificable por slider)
+        const EYE_AR_CONSEC_FRAMES = 2; // Nº frames seguidos con ojo cerrado para contar parpadeo corto
+        const LONG_BLINK_THRESHOLD = 12; // Nº frames seguidos con ojo cerrado para contar parpadeo largo
+        const LEFT_EYE_INDICES = [362, 385, 387, 263, 373, 380]; // Índices MediaPipe para ojo izquierdo
+        const RIGHT_EYE_INDICES = [33, 160, 158, 133, 153, 144]; // Índices MediaPipe para ojo derecho
 
-        let currentMode = "CATEGORY";
-        let selectedCategoryIndex = 0;
-        let selectedWordIndex = 0;
-        let activeCategoryIndex = -1;
-        let blinkCounter = 0;
-        let isBlinking = false;
-        let faceLandmarker;
-        let runningMode = "VIDEO";
-        let webcamRunning = false;
-        let lastVideoTime = -1;
+        let currentMode = "CATEGORY"; // Estado actual: "CATEGORY" o "WORD"
+        let selectedCategoryIndex = 0; // Índice de la categoría resaltada
+        let selectedWordIndex = 0; // Índice de la palabra resaltada (0 es "Volver")
+        let activeCategoryIndex = -1; // Índice de la categoría cuyas palabras se muestran
+        let blinkCounter = 0; // Contador de frames con ojo cerrado
+        let isBlinking = false; // Flag para indicar si se está detectando un parpadeo
+        let faceLandmarker; // Instancia del detector de MediaPipe
+        let runningMode = "VIDEO"; // Modo de ejecución de MediaPipe
+        let webcamRunning = false; // Flag para indicar si la cámara y detección están activas
+        let lastVideoTime = -1; // Para evitar procesar el mismo frame de video múltiples veces
 
-        // Elementos DOM
+        // Elementos del DOM
         const video = document.getElementById("webcam");
         const categoryListDiv = document.getElementById("category-list");
         const wordListDiv = document.getElementById("word-list");
         const selectedWordDisplay = document.getElementById("selected-word-display");
         const loadingMessage = document.getElementById("loading-message");
         const errorMessage = document.getElementById("error-message");
-        // NUEVO: Referencias para el slider de sensibilidad
         const sensitivitySlider = document.getElementById("sensitivity-slider");
         const sensitivityValueSpan = document.getElementById("sensitivity-value");
 
-        let categoryElements = [];
-        let wordElements = [];
+        let categoryElements = []; // Array para guardar referencias a los elementos de categoría
+        let wordElements = []; // Array para guardar referencias a los elementos de palabra
 
-        // --- FUNCIONES ---
+        // --- FUNCIONES AUXILIARES ---
+
+        /** Muestra un mensaje de error en la UI y en la consola */
         function showError(message) {
             errorMessage.textContent = `Error: ${message}`;
             errorMessage.style.display = 'block';
-            loadingMessage.style.display = 'none';
-            console.error(message);
-            webcamRunning = false;
+            loadingMessage.style.display = 'none'; // Ocultar mensaje de carga si hay error
+            console.error("Error App:", message);
+            webcamRunning = false; // Detener lógica si hay error crítico
          }
+
+        /** Crea e inicializa la instancia de FaceLandmarker de MediaPipe */
         async function createFaceLandmarker() {
             try {
                 const filesetResolver = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22-rc.20250304/wasm");
                 faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
-                    baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`, delegate: "GPU" },
-                    outputFaceBlendshapes: false, outputFacialTransformationMatrixes: false,
-                    runningMode: runningMode, numFaces: 1
+                    baseOptions: {
+                        modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
+                        delegate: "GPU" // Usar GPU si está disponible
+                    },
+                    outputFaceBlendshapes: false, // No necesitamos blendshapes
+                    outputFacialTransformationMatrixes: false, // No necesitamos matrices de transformación
+                    runningMode: runningMode, // Modo Video para procesamiento continuo
+                    numFaces: 1 // Detectar solo una cara
                 });
-                console.log("FaceLandmarker creado.");
+                console.log("FaceLandmarker creado exitosamente.");
                 loadingMessage.textContent = "Iniciando cámara...";
-            } catch (error) { showError(`No se pudo crear FaceLandmarker: ${error}`); }
+            } catch (error) {
+                showError(`No se pudo crear FaceLandmarker: ${error.message || error}`);
+            }
          }
+
+        /** Calcula la distancia euclidiana entre dos puntos 2D */
         function euclideanDist(p1, p2) {
-            if (!p1 || !p2 || typeof p1.x !== 'number' || typeof p1.y !== 'number' || typeof p2.x !== 'number' || typeof p2.y !== 'number') return 0;
+            // Comprobar si los puntos son válidos
+            if (!p1 || !p2 || typeof p1.x !== 'number' || typeof p1.y !== 'number' || typeof p2.x !== 'number' || typeof p2.y !== 'number') {
+                console.warn("Punto inválido en euclideanDist:", p1, p2);
+                return 0; // Retornar 0 si algún punto no es válido
+            }
             return Math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2);
         }
-        function calculateEAR(eyeLandmarks) {
-             if (!eyeLandmarks || eyeLandmarks.length !== 6) return 0.5; // Valor neutral si faltan puntos
-             try {
-                 const p1=eyeLandmarks[0], p2=eyeLandmarks[1], p3=eyeLandmarks[2], p4=eyeLandmarks[3], p5=eyeLandmarks[4], p6=eyeLandmarks[5];
-                 // Asegurar que todos los puntos son válidos antes de calcular
-                 if ([p1,p2,p3,p4,p5,p6].some(p => !p || typeof p.x !== 'number' || typeof p.y !== 'number')) return 0.5;
 
-                 const A = euclideanDist(p2, p6);
-                 const B = euclideanDist(p3, p5);
-                 const C = euclideanDist(p1, p4);
-                 if (C === 0) return 0.5; // Evitar división por cero, retornar valor neutral
-                 return (A + B) / (2.0 * C);
-             } catch (e) { console.error("Error calculando EAR:", e); return 0.5; } // Valor neutral en caso de error
+        /** Calcula el Eye Aspect Ratio (EAR) para un conjunto de puntos del ojo */
+        function calculateEAR(eyeLandmarks) {
+             // Asegurar que tenemos el número correcto de puntos y que son válidos
+             if (!eyeLandmarks || eyeLandmarks.length !== 6 || eyeLandmarks.some(p => !p || typeof p.x !== 'number')) {
+                // console.warn("Puntos de ojo inválidos o insuficientes para calcular EAR.");
+                return 0.5; // Retornar valor neutral si los datos no son buenos
+             }
+             try {
+                 // Puntos verticales: p2-p6, p3-p5. Punto horizontal: p1-p4
+                 const p1 = eyeLandmarks[0], p2 = eyeLandmarks[1], p3 = eyeLandmarks[2];
+                 const p4 = eyeLandmarks[3], p5 = eyeLandmarks[4], p6 = eyeLandmarks[5];
+
+                 const vertDist1 = euclideanDist(p2, p6);
+                 const vertDist2 = euclideanDist(p3, p5);
+                 const horzDist = euclideanDist(p1, p4);
+
+                 if (horzDist === 0) return 0.5; // Evitar división por cero
+
+                 // Fórmula EAR
+                 const ear = (vertDist1 + vertDist2) / (2.0 * horzDist);
+                 return ear;
+             } catch (e) {
+                 console.error("Error calculando EAR:", e);
+                 return 0.5; // Valor neutral en caso de error inesperado
+             }
         }
 
-        // --- UI ---
+        // --- FUNCIONES DE INTERFAZ DE USUARIO (UI) ---
+
+        /** Muestra la lista de categorías */
         function displayCategories() {
             currentMode = "CATEGORY";
+            selectedCategoryIndex = selectedCategoryIndex % categories.length; // Asegurar que el índice es válido
             categoryListDiv.classList.remove('hidden');
             wordListDiv.classList.add('hidden');
             categoryListDiv.querySelector('.list-title').textContent = "Selecciona Categoría";
             const container = categoryListDiv.querySelector('.list-title').parentNode;
-            // Limpiar elementos anteriores de forma segura
+
+            // Limpiar elementos previos y resetear array de elementos
             container.querySelectorAll('.item.category-item').forEach(el => el.remove());
             categoryElements = [];
+
+            // Crear y añadir elementos de categoría
             categories.forEach((category, index) => {
                 const el = document.createElement("span");
                 el.classList.add("item", "category-item");
                 el.textContent = category.name;
+                // Resaltar si es el índice seleccionado
                 el.classList.toggle("selected-item-highlight", index === selectedCategoryIndex);
                 container.appendChild(el);
-                categoryElements.push(el);
+                categoryElements.push(el); // Guardar referencia
             });
+             // Hacer scroll para que el elemento seleccionado sea visible (si aplica)
+             if (categoryElements[selectedCategoryIndex]) {
+                 categoryElements[selectedCategoryIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+             }
         }
+
+        /** Muestra la lista de palabras para una categoría dada (o "Volver") */
         function displayWords(categoryIndex) {
-            if (categoryIndex < 0 || categoryIndex >= categories.length) return;
+            // Validar índice de categoría
+            if (categoryIndex < 0 || categoryIndex >= categories.length) {
+                console.error("Índice de categoría inválido para displayWords:", categoryIndex);
+                displayCategories(); // Volver a categorías si hay error
+                return;
+            }
             currentMode = "WORD";
-            activeCategoryIndex = categoryIndex;
+            activeCategoryIndex = categoryIndex; // Guardar qué categoría está activa
             const category = categories[categoryIndex];
+            const totalOptions = category.words.length + 1; // Palabras + "Volver"
+            selectedWordIndex = selectedWordIndex % totalOptions; // Asegurar índice válido
+
             wordListDiv.classList.remove('hidden');
             categoryListDiv.classList.add('hidden');
-            wordListDiv.querySelector('.list-title').textContent = `Cat: ${category.name}`;
+            wordListDiv.querySelector('.list-title').textContent = `Categoría: ${category.name}`; // Indicar categoría actual
             const container = wordListDiv.querySelector('.list-title').parentNode;
-             // Limpiar elementos anteriores de forma segura
+
+            // Limpiar elementos previos y resetear array
             container.querySelectorAll('.item.word-item, .item.back-item').forEach(el => el.remove());
             wordElements = [];
-            // Añadir "Volver"
+
+            // Añadir opción "Volver Atrás"
             const backEl = document.createElement("span");
-            backEl.classList.add("item", "word-item", "back-item"); // Asegúrate que tenga word-item para limpieza
+            backEl.classList.add("item", "back-item", "word-item"); // Añadir word-item para facilitar limpieza
             backEl.textContent = BACK_OPTION_TEXT;
-            backEl.classList.toggle("selected-item-highlight", 0 === selectedWordIndex);
+            backEl.classList.toggle("selected-item-highlight", 0 === selectedWordIndex); // Resaltar si índice es 0
             container.appendChild(backEl);
             wordElements.push(backEl);
-            // Añadir palabras
+
+            // Añadir palabras de la categoría
             category.words.forEach((word, index) => {
                 const el = document.createElement("span");
                 el.classList.add("item", "word-item");
                 el.textContent = word;
+                // Resaltar si es el índice seleccionado (índice + 1 porque 0 es "Volver")
                 el.classList.toggle("selected-item-highlight", (index + 1) === selectedWordIndex);
                 container.appendChild(el);
                 wordElements.push(el);
             });
+             // Hacer scroll para que el elemento seleccionado sea visible (si aplica)
+             if (wordElements[selectedWordIndex]) {
+                 wordElements[selectedWordIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+             }
         }
 
-        // --- Lógica Principal ---
-        async function predictWebcam() {
-            if (!faceLandmarker || !webcamRunning) return;
+        // --- LÓGICA PRINCIPAL DE DETECCIÓN Y CONTROL ---
 
-            // Añadir chequeo para video pausado o no listo
-            if (video.paused || video.ended || video.readyState < 2) {
-                 window.requestAnimationFrame(predictWebcam);
+        /** Bucle principal que procesa el video, detecta landmarks y parpadeos */
+        async function predictWebcam() {
+            // Salir si la webcam no está lista o el detector no está inicializado
+            if (!webcamRunning || !faceLandmarker) return;
+
+            // Comprobar estado del video para evitar errores
+            if (video.paused || video.ended || video.readyState < video.HAVE_METADATA) {
+                 requestAnimationFrame(predictWebcam); // Intentar de nuevo en el siguiente frame
                  return;
             }
-             // Salto de frame si el tiempo no avanza (evita procesar el mismo frame)
+             // Saltar frame si el tiempo del video no ha avanzado (optimización)
             if (video.currentTime === lastVideoTime && !video.paused) {
-                 window.requestAnimationFrame(predictWebcam);
+                 requestAnimationFrame(predictWebcam);
                  return;
             }
             lastVideoTime = video.currentTime;
@@ -338,159 +391,225 @@
             const startTimeMs = performance.now();
             let results = undefined;
             try {
-                // Asegurar que el video tiene dimensiones válidas
-                if (video.videoWidth === 0 || video.videoHeight === 0) {
-                     window.requestAnimationFrame(predictWebcam);
-                     return; // Esperar a que el video tenga dimensiones
-                }
-                results = faceLandmarker.detectForVideo(video, startTimeMs);
-            }
-            catch (error) {
-                console.error("Error en detectForVideo:", error);
-                // Considerar mostrar un error temporal o simplemente saltar este frame
-                // showError("Fallo detección puntual."); // Podría ser muy molesto si pasa a menudo
-                window.requestAnimationFrame(predictWebcam); // Intentar el siguiente frame
-                return;
+                 // Asegurar que el video tiene dimensiones antes de detectar
+                 if (video.videoWidth === 0 || video.videoHeight === 0) {
+                     requestAnimationFrame(predictWebcam);
+                     return;
+                 }
+                 results = faceLandmarker.detectForVideo(video, startTimeMs);
+            } catch (error) {
+                 console.error("Error en detectForVideo:", error);
+                 // Podríamos mostrar un error temporal o simplemente continuar
+                 requestAnimationFrame(predictWebcam); // Intentar el siguiente frame
+                 return;
             }
 
-            let avgEAR = 0.5; // Valor por defecto neutral
+            // Calcular EAR promedio
+            let avgEAR = 0.5; // Valor neutral por defecto
             if (results?.faceLandmarks?.length > 0) {
                 const landmarks = results.faceLandmarks[0];
-                 // Validar que landmarks existe y es un array
                 if (Array.isArray(landmarks)) {
-                     const leftEyeCoords = LEFT_EYE_INDICES.map(i => landmarks[i]).filter(Boolean);
-                     const rightEyeCoords = RIGHT_EYE_INDICES.map(i => landmarks[i]).filter(Boolean);
+                    const leftEyeCoords = LEFT_EYE_INDICES.map(i => landmarks[i]).filter(Boolean);
+                    const rightEyeCoords = RIGHT_EYE_INDICES.map(i => landmarks[i]).filter(Boolean);
 
-                     // Calcular EAR solo si tenemos todos los puntos para ambos ojos
-                     if (leftEyeCoords.length === LEFT_EYE_INDICES.length && rightEyeCoords.length === RIGHT_EYE_INDICES.length) {
-                         const leftEAR = calculateEAR(leftEyeCoords);
-                         const rightEAR = calculateEAR(rightEyeCoords);
-                         avgEAR = (leftEAR + rightEAR) / 2.0;
-                     } else {
-                         // console.warn("Puntos clave de ojos incompletos detectados."); // Opcional: para depuración
-                         avgEAR = 0.5; // Mantener neutral si faltan puntos
-                     }
+                    // Calcular EAR solo si tenemos todos los puntos necesarios
+                    if (leftEyeCoords.length === LEFT_EYE_INDICES.length && rightEyeCoords.length === RIGHT_EYE_INDICES.length) {
+                        const leftEAR = calculateEAR(leftEyeCoords);
+                        const rightEAR = calculateEAR(rightEyeCoords);
+                        // Validar que los EAR calculados son números razonables
+                        if (!isNaN(leftEAR) && !isNaN(rightEAR)) {
+                             avgEAR = (leftEAR + rightEAR) / 2.0;
+                        } else {
+                             // console.warn("EAR calculado no es un número válido:", leftEAR, rightEAR);
+                             avgEAR = 0.5; // Mantener neutral si el cálculo falla
+                        }
+                    } else {
+                        // console.warn("Puntos clave de ojos incompletos.");
+                        avgEAR = 0.5; // Mantener neutral si faltan puntos
+                    }
                 }
             } else {
-                 // No se detectaron caras, podría ser normal momentáneamente
-                 // console.log("No se detectó cara en este frame.");
-                 avgEAR = 0.5; // Asumir ojos abiertos si no hay cara
+                 // No se detectó cara, mantener EAR neutral
+                 avgEAR = 0.5;
             }
 
-
-            // Lógica de Parpadeo (usa la variable EYE_AR_THRESH actualizada)
-            if (avgEAR < EYE_AR_THRESH) { // <--- Usa la variable actualizada
-                if (!isBlinking) isBlinking = true;
-                blinkCounter++;
-            } else {
-                if (isBlinking) { // Fin de parpadeo
-                    if (blinkCounter > LONG_BLINK_THRESHOLD) { // PARPADEO LARGO
+            // --- Lógica de Detección de Parpadeo ---
+            if (avgEAR < EYE_AR_THRESH) { // Ojo cerrado detectado (basado en slider)
+                if (!isBlinking) isBlinking = true; // Marcar inicio de parpadeo
+                blinkCounter++; // Incrementar contador de frames cerrados
+            } else { // Ojo abierto
+                if (isBlinking) { // Fin de un parpadeo detectado
+                    // Evaluar duración del parpadeo
+                    if (blinkCounter > LONG_BLINK_THRESHOLD) { // PARPADEO LARGO (SELECCIÓN)
+                        console.log(`PARPADEO LARGO detectado (Contador: ${blinkCounter}, Umbral: ${EYE_AR_THRESH})`);
                         if (currentMode === "CATEGORY") {
-                            selectedWordIndex = 0;
+                            // Seleccionar categoría y pasar a modo palabra
+                            selectedWordIndex = 0; // Resetear selección de palabra a "Volver"
                             displayWords(selectedCategoryIndex);
-                            selectedWordDisplay.textContent = '';
-                            console.log(`LARGO (T:${EYE_AR_THRESH}): Categoría -> "${categories[selectedCategoryIndex].name}". Modo PALABRA.`);
+                            selectedWordDisplay.textContent = ''; // Limpiar display palabra
+                            console.log(`Seleccionada Cat: "${categories[selectedCategoryIndex].name}". Modo: PALABRA.`);
                         } else { // currentMode === "WORD"
-                            if (selectedWordIndex === 0) { // Volver
-                                displayCategories();
+                            if (selectedWordIndex === 0) { // Se seleccionó "Volver"
+                                displayCategories(); // Volver a la lista de categorías
                                 selectedWordDisplay.textContent = '';
-                                console.log(`LARGO (T:${EYE_AR_THRESH}): ${BACK_OPTION_TEXT}. Modo CATEGORÍA.`);
-                            } else { // Palabra
-                                const actualWordIndex = selectedWordIndex - 1;
-                                const finalWord = categories[activeCategoryIndex].words[actualWordIndex];
-                                selectedWordDisplay.textContent = `"${finalWord}"`;
-                                // Volver a categorías después de seleccionar palabra
-                                selectedCategoryIndex = 0; // Resetear índice de categoría
-                                displayCategories();
-                                console.log(`LARGO (T:${EYE_AR_THRESH}): Palabra -> "${finalWord}". Modo CATEGORÍA.`);
+                                console.log(`Seleccionado: "${BACK_OPTION_TEXT}". Modo: CATEGORIA.`);
+                            } else { // Se seleccionó una palabra real
+                                const actualWordIndex = selectedWordIndex - 1; // Ajustar índice (-1 por "Volver")
+                                // Validar índice de palabra antes de acceder
+                                if (activeCategoryIndex >= 0 && categories[activeCategoryIndex] && actualWordIndex < categories[activeCategoryIndex].words.length) {
+                                     const finalWord = categories[activeCategoryIndex].words[actualWordIndex];
+                                     selectedWordDisplay.textContent = `"${finalWord}"`; // Mostrar palabra seleccionada
+                                     console.log(`Seleccionada Palabra: "${finalWord}". Mostrando...`);
+                                     // Opcional: Volver a categorías después de seleccionar palabra
+                                     selectedCategoryIndex = 0; // Resetear índice de categoría
+                                     displayCategories();
+                                     console.log("Volviendo a modo CATEGORIA.");
+                                } else {
+                                     console.error("Índice de palabra o categoría inválido al seleccionar.");
+                                     displayCategories(); // Volver a categorías como fallback seguro
+                                }
                             }
                         }
-                    } else if (blinkCounter >= EYE_AR_CONSEC_FRAMES) { // PARPADEO CORTO
+                    } else if (blinkCounter >= EYE_AR_CONSEC_FRAMES) { // PARPADEO CORTO (NAVEGACIÓN)
+                         console.log(`PARPADEO CORTO detectado (Contador: ${blinkCounter}, Umbral: ${EYE_AR_THRESH})`);
                          if (currentMode === "CATEGORY") {
+                             // Pasar a la siguiente categoría
                              selectedCategoryIndex = (selectedCategoryIndex + 1) % categories.length;
-                             displayCategories();
-                             selectedWordDisplay.textContent = ''; // Limpiar selección previa
-                             console.log(`CORTO (T:${EYE_AR_THRESH}): Siguiente Cat -> ${categories[selectedCategoryIndex].name}`);
+                             displayCategories(); // Actualizar UI
+                             selectedWordDisplay.textContent = ''; // Limpiar si había algo
+                             console.log(`Navegando a Cat: "${categories[selectedCategoryIndex].name}"`);
                          } else { // currentMode === "WORD"
-                              const totalOptions = categories[activeCategoryIndex].words.length + 1; // +1 por "Volver"
+                              // Pasar a la siguiente palabra (o "Volver")
+                              const totalOptions = categories[activeCategoryIndex].words.length + 1;
                               selectedWordIndex = (selectedWordIndex + 1) % totalOptions;
-                              displayWords(activeCategoryIndex);
-                               selectedWordDisplay.textContent = ''; // Limpiar selección previa
+                              displayWords(activeCategoryIndex); // Actualizar UI
+                              selectedWordDisplay.textContent = '';
                               const currentSelectionText = (selectedWordIndex === 0) ? BACK_OPTION_TEXT : categories[activeCategoryIndex].words[selectedWordIndex - 1];
-                              console.log(`CORTO (T:${EYE_AR_THRESH}): Siguiente Opción -> ${currentSelectionText}`);
+                              console.log(`Navegando a Opción: "${currentSelectionText}"`);
                          }
                     }
-                    // Resetear estado de parpadeo
+                    // Resetear estado de parpadeo tras procesarlo
                     blinkCounter = 0;
                     isBlinking = false;
-                } else { // Ojo abierto, sin cambio (resetear por si acaso)
+                } else {
+                    // Ojo abierto y no estaba parpadeando -> No hacer nada, resetear contador por seguridad
                     blinkCounter = 0;
                     isBlinking = false;
                 }
             }
-            // Continuar el bucle
-            if (webcamRunning) window.requestAnimationFrame(predictWebcam);
+
+            // Solicitar el siguiente frame para continuar el bucle
+            if (webcamRunning) {
+                requestAnimationFrame(predictWebcam);
+            }
         }
 
-        // --- INICIALIZACIÓN ---
+        // --- INICIALIZACIÓN DE LA APLICACIÓN ---
+
+        /** Función principal que se ejecuta al cargar la página */
         async function initializeApp() {
-            // Chequeo HTTPS
+            console.log("Inicializando aplicación...");
+            // Comprobar HTTPS (recomendado para getUserMedia en producción)
             if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && window.location.protocol !== 'file:') {
-                 showError("El acceso seguro (HTTPS) es necesario para usar la cámara en este dominio.");
-                 // return; // Descomentar para bloquear en HTTP
+                 console.warn("La página no se sirve sobre HTTPS. El acceso a la cámara podría fallar en algunos navegadores/dominios.");
+                 // showError("Se requiere HTTPS para usar la cámara de forma segura.");
+                 // return; // Descomentar para bloquear si no es HTTPS
             }
 
-            // NUEVO: Configurar slider de sensibilidad
-            sensitivitySlider.value = EYE_AR_THRESH; // Establecer valor inicial del slider
+            // Configurar slider de sensibilidad
+            sensitivitySlider.value = EYE_AR_THRESH; // Sincronizar slider con valor inicial
             sensitivityValueSpan.textContent = EYE_AR_THRESH.toFixed(2); // Mostrar valor inicial
             sensitivitySlider.addEventListener('input', (event) => {
                 EYE_AR_THRESH = parseFloat(event.target.value);
                 sensitivityValueSpan.textContent = EYE_AR_THRESH.toFixed(2);
-                console.log(`Sensibilidad cambiada a: ${EYE_AR_THRESH}`);
+                console.log(`Sensibilidad de parpadeo ajustada a: ${EYE_AR_THRESH}`);
             });
 
-
+            // Crear el detector de MediaPipe
             await createFaceLandmarker();
-            if (!faceLandmarker) return; // Salir si falla la creación
+            if (!faceLandmarker) {
+                 showError("Fallo al inicializar el detector facial. La aplicación no puede continuar.");
+                 return; // Salir si el detector no se pudo crear
+            }
 
-            displayCategories(); // Mostrar categorías iniciales
+            // Mostrar la interfaz inicial (lista de categorías)
+            displayCategories();
 
-            if (!navigator.mediaDevices?.getUserMedia) { showError("Cámara no soportada por este navegador."); return; }
+            // Verificar soporte de getUserMedia
+            if (!navigator.mediaDevices?.getUserMedia) {
+                 showError("La API de cámara (getUserMedia) no está soportada por este navegador.");
+                 return;
+            }
 
+            // Solicitar acceso a la cámara con resolución preferida
             try {
-                 const constraints = { video: { width: { ideal: 320 }, height: { ideal: 240 }, facingMode: 'user' } }; // Reducir resolución ideal puede ayudar rendimiento
+                 const constraints = {
+                     video: {
+                         width: { ideal: 640 }, // Pedir 640px de ancho ideal
+                         height: { ideal: 480 }, // Pedir 480px de alto ideal
+                         facingMode: 'user' // Preferir cámara frontal
+                     }
+                 };
+                 console.log("Solicitando stream de cámara con constraints:", constraints);
+
                  const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                 video.srcObject = stream;
+                 console.log("Acceso a cámara concedido.");
+
+                 // Mostrar resolución real obtenida (para depuración)
+                 const videoTracks = stream.getVideoTracks();
+                 if (videoTracks.length > 0) {
+                     const settings = videoTracks[0].getSettings();
+                     console.log(`Stream obtenido - Resolución real: ${settings.width}x${settings.height}, Frame Rate: ${settings.frameRate}`);
+                 }
+
+                 video.srcObject = stream; // Asignar stream al elemento <video>
+
+                 // Esperar a que los metadatos del video estén cargados
                  video.addEventListener("loadeddata", () => {
-                    loadingMessage.style.display = 'none'; errorMessage.style.display = 'none';
-                    webcamRunning = true; lastVideoTime = -1;
-                    console.log("Cámara lista, iniciando bucle de predicción.");
-                    window.requestAnimationFrame(predictWebcam);
+                    console.log(`Metadatos de video cargados. Dimensiones detectadas: ${video.videoWidth}x${video.videoHeight}`);
+                    loadingMessage.style.display = 'none'; // Ocultar mensaje de carga
+                    errorMessage.style.display = 'none'; // Asegurar que no hay mensaje de error
+                    webcamRunning = true; // Marcar como listo para empezar detección
+                    lastVideoTime = -1; // Resetear tiempo del último frame
+                    console.log("Iniciando bucle de detección...");
+                    requestAnimationFrame(predictWebcam); // Iniciar el bucle de procesamiento
                  });
-                 video.addEventListener('error', (e) => { showError(`Error stream video: ${e.message||'Desconocido'}`); webcamRunning = false; });
+
+                 // Manejar errores específicos del elemento video
+                 video.addEventListener('error', (e) => {
+                     showError(`Error en el elemento video: ${e.message || 'Código de error ' + video.error?.code}`);
+                     webcamRunning = false;
+                 });
+
              } catch (err) {
-                  let message = `Error acceso cámara: ${err.name} - ${err.message}`; // Mensaje por defecto
-                  // Manejo específico de errores comunes
-                  if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-                      message = "Permiso de cámara denegado. Revisa los permisos del navegador/sistema y recarga.";
-                  } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
-                      message = "No se encontró ninguna cámara.";
-                  } else if (err.name === "NotReadableError") {
-                      message = "La cámara está en uso o hubo un error de hardware/sistema.";
-                  } else if (err.name === "SecurityError") {
-                      message = "Acceso a cámara bloqueado (¿HTTPS?).";
-                  } else if (err.name === "AbortError") {
-                      message = "Solicitud de cámara abortada.";
-                  } else if (err.name === "TypeError") {
-                       message = "Error de configuración de cámara (¿restricciones no soportadas?).";
-                  }
-                   showError(message);
-                   webcamRunning = false;
-                   loadingMessage.style.display = 'none';
+                  // Manejo detallado de errores de getUserMedia
+                   let message = `Error al acceder a la cámara: ${err.name} - ${err.message}`; // Mensaje genérico
+                   console.error("Error getUserMedia:", err); // Log detallado del error
+
+                   if (err.name === "OverconstrainedError") {
+                        message = `Error: No se pudo satisfacer la resolución solicitada (ideal 640x480). El dispositivo podría no soportarla. ${err.message}`;
+                   } else if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+                       message = "Permiso de acceso a la cámara denegado. Por favor, revisa los permisos del sitio en la configuración de tu navegador y recarga la página.";
+                   } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+                       message = "No se encontró ninguna cámara de video conectada o disponible.";
+                   } else if (err.name === "NotReadableError") {
+                       message = "No se pudo acceder a la cámara. Puede que esté siendo utilizada por otra aplicación, haya un error de hardware, o necesites reiniciar el navegador/dispositivo.";
+                   } else if (err.name === "SecurityError") {
+                       message = "Acceso a la cámara bloqueado por políticas de seguridad del navegador (¿estás usando HTTPS o localhost?).";
+                   } else if (err.name === "AbortError") {
+                       message = "La solicitud de acceso a la cámara fue abortada.";
+                   } else if (err.name === "TypeError") {
+                        message = "Error de configuración de la cámara. Las restricciones solicitadas (constraints) podrían ser inválidas o no soportadas.";
+                   }
+                   showError(message); // Mostrar mensaje de error al usuario
+                   webcamRunning = false; // Asegurar que no intente procesar
+                   loadingMessage.style.display = 'none'; // Ocultar carga
             }
         }
 
+        // Iniciar la aplicación cuando el DOM esté completamente cargado
         document.addEventListener('DOMContentLoaded', initializeApp);
+
     </script>
 </body>
 </html>
