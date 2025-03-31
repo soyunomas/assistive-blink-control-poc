@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comunicación por Parpadeo - Categorías v3</title>
+    <title>Comunicación por Parpadeo - Categorías v4 (Centrado + Slider)</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             background-color: #f8f9fa;
-            padding-top: 10px;
-            padding-right: 270px; /* Espacio para video */
+            /* Ajustar padding superior para dejar espacio al video centrado */
+            padding-top: 210px; /* Incrementado para el video arriba */
+            padding-right: 0; /* Quitar padding derecho */
             /* Evitar zoom en móviles al interactuar */
             touch-action: manipulation;
         }
@@ -19,6 +20,33 @@
             min-height: 100vh;
             margin: 0; /* Resetear margen por defecto */
         }
+        #video-container { /* Cambiado de ID y estilo para centrar */
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%); /* Centrado horizontal */
+            width: 240px;
+            height: 180px;
+            border: 2px solid #0d6efd;
+            background-color: #333;
+            z-index: 1000;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            border-radius: 5px; /* Opcional: bordes redondeados */
+        }
+        #webcam {
+            display: block; width: 100%; height: 100%;
+            transform: scaleX(-1); object-fit: cover;
+        }
+        #loading-message, #error-message {
+            position: absolute; top: 50%; left: 50%; width: 90%;
+            transform: translate(-50%, -50%); background-color: rgba(0, 0, 0, 0.8);
+            color: white; padding: 12px; border-radius: 5px;
+            text-align: center; font-size: 0.9rem; z-index: 10;
+            box-sizing: border-box;
+        }
+        #error-message { background-color: rgba(220, 53, 69, 0.85); display: none; }
+
         .main-container {
             max-width: 950px;
             margin: 20px auto;
@@ -27,25 +55,6 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        #video-corner-container {
-            position: fixed; top: 10px; right: 10px;
-            width: 240px; height: 180px;
-            border: 2px solid #0d6efd; background-color: #333;
-            z-index: 1000; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
-        #webcam {
-            display: block; width: 100%; height: 100%;
-            transform: scaleX(-1); object-fit: cover;
-        }
-        #loading-message, #error-message {
-            position: absolute; top: 50%; left: 50%; width: 90%; /* Más ancho para texto largo */
-            transform: translate(-50%, -50%); background-color: rgba(0, 0, 0, 0.8); /* Más opaco */
-            color: white; padding: 12px; border-radius: 5px;
-            text-align: center; font-size: 0.9rem; z-index: 10;
-            box-sizing: border-box; /* Incluir padding en el width */
-        }
-        #error-message { background-color: rgba(220, 53, 69, 0.85); display: none; }
-
         .list-container { margin-top: 20px; min-height: 200px; text-align: center; }
         .list-title { font-size: 1.3rem; font-weight: bold; color: #495057; margin-bottom: 15px; }
 
@@ -54,20 +63,14 @@
             display: inline-block; min-width: 120px; text-align: center;
             font-size: 1.1rem; background-color: #fff; border-radius: 4px;
             cursor: default; transition: all 0.2s ease-in-out;
-            user-select: none; /* Evitar selección de texto */
+            user-select: none;
         }
         .item:hover { border-color: #adb5bd; }
 
-        .category-item {
-            background-color: #e0f2fe; border-color: #bae6fd; color: #0c5464;
-        }
+        .category-item { background-color: #e0f2fe; border-color: #bae6fd; color: #0c5464; }
         .category-item:hover { background-color: #ccecfd; border-color: #a4dffc; }
-
-         .back-item {
-             background-color: #fff3cd; border-color: #ffeeba; color: #856404;
-         }
-         .back-item:hover { background-color: #ffe8a1; border-color: #ffdf7e; }
-
+        .back-item { background-color: #fff3cd; border-color: #ffeeba; color: #856404; }
+        .back-item:hover { background-color: #ffe8a1; border-color: #ffdf7e; }
         .selected-item-highlight {
             background-color: #0d6efd; color: white; border-color: #0a58ca;
             font-weight: bold; box-shadow: 0 0 10px rgba(13, 110, 253, 0.6);
@@ -78,63 +81,76 @@
             margin-top: 30px; padding: 15px; font-size: 2.2rem; font-weight: bold;
             color: #198754; text-align: center; min-height: 60px;
             background-color: #e9f5ec; border-radius: 5px; border: 1px solid #c3e6cb;
-            word-wrap: break-word; /* Para palabras largas */
+            word-wrap: break-word;
         }
         #category-list.hidden, #word-list.hidden { display: none; }
 
-        /* Adaptación para pantallas más pequeñas (ej. móviles en vertical) */
+        /* NUEVO: Estilos para el slider de sensibilidad */
+        .sensitivity-control {
+            margin-top: 15px;
+            text-align: center;
+            padding: 10px;
+            background-color: #f1f3f5;
+            border-radius: 5px;
+        }
+        .sensitivity-control label {
+            margin-right: 10px;
+            font-weight: 500;
+            color: #495057;
+        }
+        .sensitivity-control input[type="range"] {
+            width: 200px;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+        .sensitivity-control span {
+            font-weight: bold;
+            color: #0d6efd;
+            min-width: 35px; /* Espacio para el valor */
+            display: inline-block;
+            text-align: right;
+        }
+
+        /* Adaptación para pantallas más pequeñas */
         @media (max-width: 768px) {
             body {
-                padding-right: 0; /* Quitar padding derecho */
-                padding-top: 130px; /* Espacio arriba para video más pequeño */
+                /* Ajustar padding superior para video más pequeño */
+                padding-top: 150px; /* Ajustado para video más pequeño */
             }
-            #video-corner-container {
+            #video-container { /* Video centrado también en móvil */
                 width: 160px; /* Más pequeño */
                 height: 120px;
-                /* Centrarlo arriba podría ser opción, pero mantenemos esquina */
-                /* top: 10px; left: 50%; transform: translateX(-50%); */
+                /* left: 50%; transform: translateX(-50%); ya está aplicado */
             }
              #loading-message, #error-message {
-                font-size: 0.8rem;
-                padding: 8px;
+                font-size: 0.8rem; padding: 8px;
             }
             .main-container {
-                width: 95%; /* Casi todo el ancho */
-                max-width: none;
-                margin: 10px auto;
-                padding: 15px;
+                width: 95%; max-width: none; margin: 10px auto; padding: 15px;
             }
             .item {
-                min-width: 100px; /* Un poco más pequeños */
-                padding: 8px 12px;
-                font-size: 1rem;
-                margin: 4px;
+                min-width: 100px; padding: 8px 12px; font-size: 1rem; margin: 4px;
             }
-             #selected-word-display {
-                font-size: 1.8rem;
-                min-height: 50px;
-                padding: 10px;
-            }
+             #selected-word-display { font-size: 1.8rem; min-height: 50px; padding: 10px; }
+             /* Ajuste slider en móvil */
+             .sensitivity-control input[type="range"] { width: 150px; }
         }
          @media (max-width: 480px) {
+            body { padding-top: 160px; } /* Más espacio si es necesario */
              .item {
-                 min-width: 80px;
-                 padding: 6px 10px;
-                 font-size: 0.9rem;
-                 margin: 3px;
+                 min-width: 80px; padding: 6px 10px; font-size: 0.9rem; margin: 3px;
              }
-             #selected-word-display {
-                 font-size: 1.5rem;
-             }
-              body {
-                  padding-top: 140px; /* Ajustar si es necesario */
-              }
+             #selected-word-display { font-size: 1.5rem; }
+             /* Ajuste slider en móvil muy pequeño */
+             .sensitivity-control input[type="range"] { width: 120px; }
+             .sensitivity-control label { display: block; margin-bottom: 5px; } /* Etiqueta arriba */
          }
 
     </style>
 </head>
 <body>
-    <div id="video-corner-container">
+    <!-- Contenedor del video, ahora centrado arriba -->
+    <div id="video-container">
         <video id="webcam" autoplay playsinline></video>
         <div id="loading-message">Cargando...</div>
         <div id="error-message"></div>
@@ -142,6 +158,14 @@
 
     <div class="main-container">
         <h1 class="text-center mb-4">Comunicación por Parpadeo</h1>
+
+        <!-- NUEVO: Slider de Sensibilidad -->
+        <div class="sensitivity-control">
+            <label for="sensitivity-slider">Sensibilidad Parpadeo:</label>
+            <input type="range" id="sensitivity-slider" min="0.15" max="0.40" step="0.01" value="0.28">
+            (<span id="sensitivity-value">0.28</span>)
+        </div>
+
         <div class="list-container">
             <div id="category-list">
                 <div class="list-title">Selecciona una Categoría</div>
@@ -160,24 +184,25 @@
 
         // --- DATOS ---
         const categories = [
-            { name: "Respuestas", words: ["Sí", "No", "Bien", "Mal"] },
-            { name: "Necesidades", words: ["Agua", "Comida", "Baño", "Dormir"] },
-            { name: "Sensaciones", words: ["Dolor", "Cómodo", "Incómodo", "Frío", "Calor", "Pica", "Cansado"] },
-            { name: "Acciones", words: ["Ayuda", "Mover", "Subir", "Bajar", "Quiero", "No quiero", "Más", "Menos", "Espera"] },
-            { name: "Entorno", words: ["Luz", "Tele", "Música", "Ventana", "Puerta", "Ahora", "Después", "Terminar"] },
-            { name: "Social", words: ["Hola", "Adiós", "Gracias", "Por favor"] },
-            { name: "Personas", words: ["Familia", "Doctor", "Enfermera", "Otro"] },
-            { name: "Emociones", words: ["Feliz", "Triste", "Enfadado", "Asustado", "Sorprendido"] },
-            { name: "Tiempo", words: ["Hoy", "Mañana", "Ayer", "Sol", "Lluvia", "Noche", "Día"] },
-            { name: "Lugares", words: ["Casa", "Hospital", "Calle", "Habitación", "Jardín", "Tienda"] },
-            { name: "Ropa", words: ["Camisa", "Pantalón", "Abrigo", "Manta", "Zapatos", "Gorra"] }
+             { name: "Respuestas", words: ["Sí", "No", "Bien", "Mal"] },
+             { name: "Necesidades", words: ["Agua", "Comida", "Baño", "Dormir"] },
+             { name: "Sensaciones", words: ["Dolor", "Cómodo", "Incómodo", "Frío", "Calor", "Pica", "Cansado"] },
+             { name: "Acciones", words: ["Ayuda", "Mover", "Subir", "Bajar", "Quiero", "No quiero", "Más", "Menos", "Espera"] },
+             { name: "Entorno", words: ["Luz", "Tele", "Música", "Ventana", "Puerta", "Ahora", "Después", "Terminar"] },
+             { name: "Social", words: ["Hola", "Adiós", "Gracias", "Por favor"] },
+             { name: "Personas", words: ["Familia", "Doctor", "Enfermera", "Otro"] },
+             { name: "Emociones", words: ["Feliz", "Triste", "Enfadado", "Asustado", "Sorprendido"] },
+             { name: "Tiempo", words: ["Hoy", "Mañana", "Ayer", "Sol", "Lluvia", "Noche", "Día"] },
+             { name: "Lugares", words: ["Casa", "Hospital", "Calle", "Habitación", "Jardín", "Tienda"] },
+             { name: "Ropa", words: ["Camisa", "Pantalón", "Abrigo", "Manta", "Zapatos", "Gorra"] }
         ];
         const BACK_OPTION_TEXT = "Volver Atrás";
 
         // --- CONSTANTES Y ESTADO ---
-        const EYE_AR_THRESH = 0.28; // Ajustar si es necesario
+        // CAMBIADO: EYE_AR_THRESH ahora es 'let' para poder modificarlo
+        let EYE_AR_THRESH = 0.28; // Valor inicial, se ajustará con el slider
         const EYE_AR_CONSEC_FRAMES = 2;
-        const LONG_BLINK_THRESHOLD = 12; // Ajustar si es necesario
+        const LONG_BLINK_THRESHOLD = 12;
         const LEFT_EYE_INDICES = [362, 385, 387, 263, 373, 380];
         const RIGHT_EYE_INDICES = [33, 160, 158, 133, 153, 144];
 
@@ -199,6 +224,10 @@
         const selectedWordDisplay = document.getElementById("selected-word-display");
         const loadingMessage = document.getElementById("loading-message");
         const errorMessage = document.getElementById("error-message");
+        // NUEVO: Referencias para el slider de sensibilidad
+        const sensitivitySlider = document.getElementById("sensitivity-slider");
+        const sensitivityValueSpan = document.getElementById("sensitivity-value");
+
         let categoryElements = [];
         let wordElements = [];
 
@@ -227,13 +256,18 @@
             return Math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2);
         }
         function calculateEAR(eyeLandmarks) {
-             if (!eyeLandmarks || eyeLandmarks.length !== 6) return 0.5;
+             if (!eyeLandmarks || eyeLandmarks.length !== 6) return 0.5; // Valor neutral si faltan puntos
              try {
                  const p1=eyeLandmarks[0], p2=eyeLandmarks[1], p3=eyeLandmarks[2], p4=eyeLandmarks[3], p5=eyeLandmarks[4], p6=eyeLandmarks[5];
-                 const A = euclideanDist(p2, p6), B = euclideanDist(p3, p5), C = euclideanDist(p1, p4);
-                 if (C === 0) return 0.5;
+                 // Asegurar que todos los puntos son válidos antes de calcular
+                 if ([p1,p2,p3,p4,p5,p6].some(p => !p || typeof p.x !== 'number' || typeof p.y !== 'number')) return 0.5;
+
+                 const A = euclideanDist(p2, p6);
+                 const B = euclideanDist(p3, p5);
+                 const C = euclideanDist(p1, p4);
+                 if (C === 0) return 0.5; // Evitar división por cero, retornar valor neutral
                  return (A + B) / (2.0 * C);
-             } catch (e) { console.error("Error EAR:", e); return 0.5; }
+             } catch (e) { console.error("Error calculando EAR:", e); return 0.5; } // Valor neutral en caso de error
         }
 
         // --- UI ---
@@ -243,7 +277,8 @@
             wordListDiv.classList.add('hidden');
             categoryListDiv.querySelector('.list-title').textContent = "Selecciona Categoría";
             const container = categoryListDiv.querySelector('.list-title').parentNode;
-            container.querySelectorAll('.item').forEach(el => el.remove());
+            // Limpiar elementos anteriores de forma segura
+            container.querySelectorAll('.item.category-item').forEach(el => el.remove());
             categoryElements = [];
             categories.forEach((category, index) => {
                 const el = document.createElement("span");
@@ -263,11 +298,12 @@
             categoryListDiv.classList.add('hidden');
             wordListDiv.querySelector('.list-title').textContent = `Cat: ${category.name}`;
             const container = wordListDiv.querySelector('.list-title').parentNode;
-            container.querySelectorAll('.item').forEach(el => el.remove());
+             // Limpiar elementos anteriores de forma segura
+            container.querySelectorAll('.item.word-item, .item.back-item').forEach(el => el.remove());
             wordElements = [];
             // Añadir "Volver"
             const backEl = document.createElement("span");
-            backEl.classList.add("item", "word-item", "back-item");
+            backEl.classList.add("item", "word-item", "back-item"); // Asegúrate que tenga word-item para limpieza
             backEl.textContent = BACK_OPTION_TEXT;
             backEl.classList.toggle("selected-item-highlight", 0 === selectedWordIndex);
             container.appendChild(backEl);
@@ -286,130 +322,171 @@
         // --- Lógica Principal ---
         async function predictWebcam() {
             if (!faceLandmarker || !webcamRunning) return;
-            if (video.readyState < 2) { window.requestAnimationFrame(predictWebcam); return; }
-            if (video.currentTime === lastVideoTime && !video.paused) { window.requestAnimationFrame(predictWebcam); return; }
+
+            // Añadir chequeo para video pausado o no listo
+            if (video.paused || video.ended || video.readyState < 2) {
+                 window.requestAnimationFrame(predictWebcam);
+                 return;
+            }
+             // Salto de frame si el tiempo no avanza (evita procesar el mismo frame)
+            if (video.currentTime === lastVideoTime && !video.paused) {
+                 window.requestAnimationFrame(predictWebcam);
+                 return;
+            }
             lastVideoTime = video.currentTime;
 
             const startTimeMs = performance.now();
             let results = undefined;
-            try { results = faceLandmarker.detectForVideo(video, startTimeMs); }
-            catch (error) { console.error("Error detectForVideo:", error); showError("Fallo detección."); return; }
-
-            let avgEAR = 0.5;
-            if (results?.faceLandmarks?.length > 0) {
-                const landmarks = results.faceLandmarks[0];
-                const leftEyeCoords = LEFT_EYE_INDICES.map(i => landmarks[i]).filter(Boolean);
-                const rightEyeCoords = RIGHT_EYE_INDICES.map(i => landmarks[i]).filter(Boolean);
-                if (leftEyeCoords.length === 6 && rightEyeCoords.length === 6) {
-                    avgEAR = (calculateEAR(leftEyeCoords) + calculateEAR(rightEyeCoords)) / 2.0;
+            try {
+                // Asegurar que el video tiene dimensiones válidas
+                if (video.videoWidth === 0 || video.videoHeight === 0) {
+                     window.requestAnimationFrame(predictWebcam);
+                     return; // Esperar a que el video tenga dimensiones
                 }
+                results = faceLandmarker.detectForVideo(video, startTimeMs);
+            }
+            catch (error) {
+                console.error("Error en detectForVideo:", error);
+                // Considerar mostrar un error temporal o simplemente saltar este frame
+                // showError("Fallo detección puntual."); // Podría ser muy molesto si pasa a menudo
+                window.requestAnimationFrame(predictWebcam); // Intentar el siguiente frame
+                return;
             }
 
-            // Lógica de Parpadeo
-            if (avgEAR < EYE_AR_THRESH) {
+            let avgEAR = 0.5; // Valor por defecto neutral
+            if (results?.faceLandmarks?.length > 0) {
+                const landmarks = results.faceLandmarks[0];
+                 // Validar que landmarks existe y es un array
+                if (Array.isArray(landmarks)) {
+                     const leftEyeCoords = LEFT_EYE_INDICES.map(i => landmarks[i]).filter(Boolean);
+                     const rightEyeCoords = RIGHT_EYE_INDICES.map(i => landmarks[i]).filter(Boolean);
+
+                     // Calcular EAR solo si tenemos todos los puntos para ambos ojos
+                     if (leftEyeCoords.length === LEFT_EYE_INDICES.length && rightEyeCoords.length === RIGHT_EYE_INDICES.length) {
+                         const leftEAR = calculateEAR(leftEyeCoords);
+                         const rightEAR = calculateEAR(rightEyeCoords);
+                         avgEAR = (leftEAR + rightEAR) / 2.0;
+                     } else {
+                         // console.warn("Puntos clave de ojos incompletos detectados."); // Opcional: para depuración
+                         avgEAR = 0.5; // Mantener neutral si faltan puntos
+                     }
+                }
+            } else {
+                 // No se detectaron caras, podría ser normal momentáneamente
+                 // console.log("No se detectó cara en este frame.");
+                 avgEAR = 0.5; // Asumir ojos abiertos si no hay cara
+            }
+
+
+            // Lógica de Parpadeo (usa la variable EYE_AR_THRESH actualizada)
+            if (avgEAR < EYE_AR_THRESH) { // <--- Usa la variable actualizada
                 if (!isBlinking) isBlinking = true;
                 blinkCounter++;
             } else {
                 if (isBlinking) { // Fin de parpadeo
                     if (blinkCounter > LONG_BLINK_THRESHOLD) { // PARPADEO LARGO
                         if (currentMode === "CATEGORY") {
-                            selectedWordIndex = 0; // Seleccionar "Volver" por defecto
+                            selectedWordIndex = 0;
                             displayWords(selectedCategoryIndex);
                             selectedWordDisplay.textContent = '';
-                            console.log(`LARGO: Categoría -> "${categories[selectedCategoryIndex].name}". Modo PALABRA.`);
+                            console.log(`LARGO (T:${EYE_AR_THRESH}): Categoría -> "${categories[selectedCategoryIndex].name}". Modo PALABRA.`);
                         } else { // currentMode === "WORD"
-                            if (selectedWordIndex === 0) { // Seleccionado "Volver"
+                            if (selectedWordIndex === 0) { // Volver
                                 displayCategories();
                                 selectedWordDisplay.textContent = '';
-                                console.log(`LARGO: ${BACK_OPTION_TEXT}. Modo CATEGORÍA.`);
-                            } else { // Seleccionada palabra real
+                                console.log(`LARGO (T:${EYE_AR_THRESH}): ${BACK_OPTION_TEXT}. Modo CATEGORÍA.`);
+                            } else { // Palabra
                                 const actualWordIndex = selectedWordIndex - 1;
                                 const finalWord = categories[activeCategoryIndex].words[actualWordIndex];
                                 selectedWordDisplay.textContent = `"${finalWord}"`;
+                                // Volver a categorías después de seleccionar palabra
+                                selectedCategoryIndex = 0; // Resetear índice de categoría
                                 displayCategories();
-                                console.log(`LARGO: Palabra -> "${finalWord}". Modo CATEGORÍA.`);
+                                console.log(`LARGO (T:${EYE_AR_THRESH}): Palabra -> "${finalWord}". Modo CATEGORÍA.`);
                             }
                         }
                     } else if (blinkCounter >= EYE_AR_CONSEC_FRAMES) { // PARPADEO CORTO
                          if (currentMode === "CATEGORY") {
                              selectedCategoryIndex = (selectedCategoryIndex + 1) % categories.length;
                              displayCategories();
-                             selectedWordDisplay.textContent = '';
-                             console.log(`CORTO: Siguiente Categoría -> ${categories[selectedCategoryIndex].name}`);
+                             selectedWordDisplay.textContent = ''; // Limpiar selección previa
+                             console.log(`CORTO (T:${EYE_AR_THRESH}): Siguiente Cat -> ${categories[selectedCategoryIndex].name}`);
                          } else { // currentMode === "WORD"
-                              const totalOptions = categories[activeCategoryIndex].words.length + 1;
+                              const totalOptions = categories[activeCategoryIndex].words.length + 1; // +1 por "Volver"
                               selectedWordIndex = (selectedWordIndex + 1) % totalOptions;
                               displayWords(activeCategoryIndex);
-                              selectedWordDisplay.textContent = '';
+                               selectedWordDisplay.textContent = ''; // Limpiar selección previa
                               const currentSelectionText = (selectedWordIndex === 0) ? BACK_OPTION_TEXT : categories[activeCategoryIndex].words[selectedWordIndex - 1];
-                              console.log(`CORTO: Siguiente Opción -> ${currentSelectionText}`);
+                              console.log(`CORTO (T:${EYE_AR_THRESH}): Siguiente Opción -> ${currentSelectionText}`);
                          }
                     }
-                    // Resetear
+                    // Resetear estado de parpadeo
                     blinkCounter = 0;
                     isBlinking = false;
-                } else { // Ojo abierto, sin cambio
+                } else { // Ojo abierto, sin cambio (resetear por si acaso)
                     blinkCounter = 0;
                     isBlinking = false;
                 }
             }
+            // Continuar el bucle
             if (webcamRunning) window.requestAnimationFrame(predictWebcam);
         }
 
         // --- INICIALIZACIÓN ---
         async function initializeApp() {
-            // Asegurarse de que estamos en HTTPS si no es localhost/file
-            if (window.location.protocol !== 'https:' &&
-                window.location.hostname !== 'localhost' &&
-                window.location.hostname !== '127.0.0.1' &&
-                 window.location.protocol !== 'file:') {
+            // Chequeo HTTPS
+            if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && window.location.protocol !== 'file:') {
                  showError("El acceso seguro (HTTPS) es necesario para usar la cámara en este dominio.");
-                 loadingMessage.style.display = 'none';
-                 // No continuar si no es seguro
-                 // return; // Descomentar si se quiere bloquear completamente en HTTP
+                 // return; // Descomentar para bloquear en HTTP
             }
+
+            // NUEVO: Configurar slider de sensibilidad
+            sensitivitySlider.value = EYE_AR_THRESH; // Establecer valor inicial del slider
+            sensitivityValueSpan.textContent = EYE_AR_THRESH.toFixed(2); // Mostrar valor inicial
+            sensitivitySlider.addEventListener('input', (event) => {
+                EYE_AR_THRESH = parseFloat(event.target.value);
+                sensitivityValueSpan.textContent = EYE_AR_THRESH.toFixed(2);
+                console.log(`Sensibilidad cambiada a: ${EYE_AR_THRESH}`);
+            });
 
 
             await createFaceLandmarker();
-            if (!faceLandmarker) return;
+            if (!faceLandmarker) return; // Salir si falla la creación
 
-            displayCategories(); // Mostrar categorías al inicio
+            displayCategories(); // Mostrar categorías iniciales
 
             if (!navigator.mediaDevices?.getUserMedia) { showError("Cámara no soportada por este navegador."); return; }
 
             try {
-                 const constraints = { video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' } };
+                 const constraints = { video: { width: { ideal: 320 }, height: { ideal: 240 }, facingMode: 'user' } }; // Reducir resolución ideal puede ayudar rendimiento
                  const stream = await navigator.mediaDevices.getUserMedia(constraints);
                  video.srcObject = stream;
                  video.addEventListener("loadeddata", () => {
                     loadingMessage.style.display = 'none'; errorMessage.style.display = 'none';
                     webcamRunning = true; lastVideoTime = -1;
-                    console.log("Cámara lista, iniciando bucle.");
+                    console.log("Cámara lista, iniciando bucle de predicción.");
                     window.requestAnimationFrame(predictWebcam);
                  });
-                 video.addEventListener('error', (e) => { showError(`Error video: ${e.message||'?'}`); webcamRunning = false; });
+                 video.addEventListener('error', (e) => { showError(`Error stream video: ${e.message||'Desconocido'}`); webcamRunning = false; });
              } catch (err) {
-                  let message = `Error cámara: ${err.name} - ${err.message}`; // Mensaje por defecto
-
-                  // --- MANEJO DE ERRORES DE PERMISO MEJORADO ---
+                  let message = `Error acceso cámara: ${err.name} - ${err.message}`; // Mensaje por defecto
+                  // Manejo específico de errores comunes
                   if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-                      message = "Permiso de cámara denegado. Por favor, ve a la configuración de permisos de este sitio en tu navegador Y/O a la configuración de permisos de la app del navegador en tu dispositivo móvil para permitir el acceso a la cámara. Luego, recarga la página.";
+                      message = "Permiso de cámara denegado. Revisa los permisos del navegador/sistema y recarga.";
                   } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
-                      message = "No se encontró ninguna cámara conectada.";
+                      message = "No se encontró ninguna cámara.";
                   } else if (err.name === "NotReadableError") {
-                      message = "La cámara está ocupada por otra app, hubo un error de hardware o necesitas reiniciar el navegador/dispositivo.";
+                      message = "La cámara está en uso o hubo un error de hardware/sistema.";
                   } else if (err.name === "SecurityError") {
-                      message = "Acceso a cámara bloqueado por seguridad. Asegúrate de usar HTTPS o ejecutar como localhost/archivo local.";
+                      message = "Acceso a cámara bloqueado (¿HTTPS?).";
                   } else if (err.name === "AbortError") {
-                      message = "La solicitud de cámara fue abortada, posiblemente por un cambio rápido de página o configuración.";
+                      message = "Solicitud de cámara abortada.";
                   } else if (err.name === "TypeError") {
-                       message = "Error de configuración de cámara. Las restricciones solicitadas (resolución, etc.) podrían no ser soportadas.";
-                  } // Se podrían añadir más casos específicos si es necesario
-                  // --- FIN MANEJO MEJORADO ---
-
-                   showError(message); // Mostrar el mensaje específico o el por defecto
+                       message = "Error de configuración de cámara (¿restricciones no soportadas?).";
+                  }
+                   showError(message);
                    webcamRunning = false;
-                   loadingMessage.style.display = 'none'; // Ocultar carga si hay error
+                   loadingMessage.style.display = 'none';
             }
         }
 
