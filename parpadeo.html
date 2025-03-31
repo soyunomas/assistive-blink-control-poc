@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunicación por Parpadeo - Categorías v3</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 10px;
+            padding-right: 270px; /* Espacio para video */
+            /* Evitar zoom en móviles al interactuar */
+            touch-action: manipulation;
+        }
+        /* Asegurar que el body ocupe al menos el alto de la pantalla */
+        html, body {
+            min-height: 100vh;
+            margin: 0; /* Resetear margen por defecto */
+        }
+        .main-container {
+            max-width: 950px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #video-corner-container {
+            position: fixed; top: 10px; right: 10px;
+            width: 240px; height: 180px;
+            border: 2px solid #0d6efd; background-color: #333;
+            z-index: 1000; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        #webcam {
+            display: block; width: 100%; height: 100%;
+            transform: scaleX(-1); object-fit: cover;
+        }
+        #loading-message, #error-message {
+            position: absolute; top: 50%; left: 50%; width: 90%; /* Más ancho para texto largo */
+            transform: translate(-50%, -50%); background-color: rgba(0, 0, 0, 0.8); /* Más opaco */
+            color: white; padding: 12px; border-radius: 5px;
+            text-align: center; font-size: 0.9rem; z-index: 10;
+            box-sizing: border-box; /* Incluir padding en el width */
+        }
+        #error-message { background-color: rgba(220, 53, 69, 0.85); display: none; }
+
+        .list-container { margin-top: 20px; min-height: 200px; text-align: center; }
+        .list-title { font-size: 1.3rem; font-weight: bold; color: #495057; margin-bottom: 15px; }
+
+        .item {
+            border: 1px solid #ddd; padding: 10px 18px; margin: 6px;
+            display: inline-block; min-width: 120px; text-align: center;
+            font-size: 1.1rem; background-color: #fff; border-radius: 4px;
+            cursor: default; transition: all 0.2s ease-in-out;
+            user-select: none; /* Evitar selección de texto */
+        }
+        .item:hover { border-color: #adb5bd; }
+
+        .category-item {
+            background-color: #e0f2fe; border-color: #bae6fd; color: #0c5464;
+        }
+        .category-item:hover { background-color: #ccecfd; border-color: #a4dffc; }
+
+         .back-item {
+             background-color: #fff3cd; border-color: #ffeeba; color: #856404;
+         }
+         .back-item:hover { background-color: #ffe8a1; border-color: #ffdf7e; }
+
+        .selected-item-highlight {
+            background-color: #0d6efd; color: white; border-color: #0a58ca;
+            font-weight: bold; box-shadow: 0 0 10px rgba(13, 110, 253, 0.6);
+            transform: scale(1.05);
+        }
+
+        #selected-word-display {
+            margin-top: 30px; padding: 15px; font-size: 2.2rem; font-weight: bold;
+            color: #198754; text-align: center; min-height: 60px;
+            background-color: #e9f5ec; border-radius: 5px; border: 1px solid #c3e6cb;
+            word-wrap: break-word; /* Para palabras largas */
+        }
+        #category-list.hidden, #word-list.hidden { display: none; }
+
+        /* Adaptación para pantallas más pequeñas (ej. móviles en vertical) */
+        @media (max-width: 768px) {
+            body {
+                padding-right: 0; /* Quitar padding derecho */
+                padding-top: 130px; /* Espacio arriba para video más pequeño */
+            }
+            #video-corner-container {
+                width: 160px; /* Más pequeño */
+                height: 120px;
+                /* Centrarlo arriba podría ser opción, pero mantenemos esquina */
+                /* top: 10px; left: 50%; transform: translateX(-50%); */
+            }
+             #loading-message, #error-message {
+                font-size: 0.8rem;
+                padding: 8px;
+            }
+            .main-container {
+                width: 95%; /* Casi todo el ancho */
+                max-width: none;
+                margin: 10px auto;
+                padding: 15px;
+            }
+            .item {
+                min-width: 100px; /* Un poco más pequeños */
+                padding: 8px 12px;
+                font-size: 1rem;
+                margin: 4px;
+            }
+             #selected-word-display {
+                font-size: 1.8rem;
+                min-height: 50px;
+                padding: 10px;
+            }
+        }
+         @media (max-width: 480px) {
+             .item {
+                 min-width: 80px;
+                 padding: 6px 10px;
+                 font-size: 0.9rem;
+                 margin: 3px;
+             }
+             #selected-word-display {
+                 font-size: 1.5rem;
+             }
+              body {
+                  padding-top: 140px; /* Ajustar si es necesario */
+              }
+         }
+
+    </style>
+</head>
+<body>
+    <div id="video-corner-container">
+        <video id="webcam" autoplay playsinline></video>
+        <div id="loading-message">Cargando...</div>
+        <div id="error-message"></div>
+    </div>
+
+    <div class="main-container">
+        <h1 class="text-center mb-4">Comunicación por Parpadeo</h1>
+        <div class="list-container">
+            <div id="category-list">
+                <div class="list-title">Selecciona una Categoría</div>
+                <!-- Categorías se generan aquí -->
+            </div>
+            <div id="word-list" class="hidden">
+                <div class="list-title">Selecciona una Palabra o Vuelve</div>
+                <!-- Palabras (y "Volver") se generan aquí -->
+            </div>
+        </div>
+        <div id="selected-word-display"></div>
+    </div>
+
+    <script type="module">
+        import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22-rc.20250304/+esm";
+
+        // --- DATOS ---
+        const categories = [
+            { name: "Respuestas", words: ["Sí", "No", "Bien", "Mal"] },
+            { name: "Necesidades", words: ["Agua", "Comida", "Baño", "Dormir"] },
+            { name: "Sensaciones", words: ["Dolor", "Cómodo", "Incómodo", "Frío", "Calor", "Pica", "Cansado"] },
+            { name: "Acciones", words: ["Ayuda", "Mover", "Subir", "Bajar", "Quiero", "No quiero", "Más", "Menos", "Espera"] },
+            { name: "Entorno", words: ["Luz", "Tele", "Música", "Ventana", "Puerta", "Ahora", "Después", "Terminar"] },
+            { name: "Social", words: ["Hola", "Adiós", "Gracias", "Por favor"] },
+            { name: "Personas", words: ["Familia", "Doctor", "Enfermera", "Otro"] },
+            { name: "Emociones", words: ["Feliz", "Triste", "Enfadado", "Asustado", "Sorprendido"] },
+            { name: "Tiempo", words: ["Hoy", "Mañana", "Ayer", "Sol", "Lluvia", "Noche", "Día"] },
+            { name: "Lugares", words: ["Casa", "Hospital", "Calle", "Habitación", "Jardín", "Tienda"] },
+            { name: "Ropa", words: ["Camisa", "Pantalón", "Abrigo", "Manta", "Zapatos", "Gorra"] }
+        ];
+        const BACK_OPTION_TEXT = "Volver Atrás";
+
+        // --- CONSTANTES Y ESTADO ---
+        const EYE_AR_THRESH = 0.28; // Ajustar si es necesario
+        const EYE_AR_CONSEC_FRAMES = 2;
+        const LONG_BLINK_THRESHOLD = 12; // Ajustar si es necesario
+        const LEFT_EYE_INDICES = [362, 385, 387, 263, 373, 380];
+        const RIGHT_EYE_INDICES = [33, 160, 158, 133, 153, 144];
+
+        let currentMode = "CATEGORY";
+        let selectedCategoryIndex = 0;
+        let selectedWordIndex = 0;
+        let activeCategoryIndex = -1;
+        let blinkCounter = 0;
+        let isBlinking = false;
+        let faceLandmarker;
+        let runningMode = "VIDEO";
+        let webcamRunning = false;
+        let lastVideoTime = -1;
+
+        // Elementos DOM
+        const video = document.getElementById("webcam");
+        const categoryListDiv = document.getElementById("category-list");
+        const wordListDiv = document.getElementById("word-list");
+        const selectedWordDisplay = document.getElementById("selected-word-display");
+        const loadingMessage = document.getElementById("loading-message");
+        const errorMessage = document.getElementById("error-message");
+        let categoryElements = [];
+        let wordElements = [];
+
+        // --- FUNCIONES ---
+        function showError(message) {
+            errorMessage.textContent = `Error: ${message}`;
+            errorMessage.style.display = 'block';
+            loadingMessage.style.display = 'none';
+            console.error(message);
+            webcamRunning = false;
+         }
+        async function createFaceLandmarker() {
+            try {
+                const filesetResolver = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22-rc.20250304/wasm");
+                faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
+                    baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`, delegate: "GPU" },
+                    outputFaceBlendshapes: false, outputFacialTransformationMatrixes: false,
+                    runningMode: runningMode, numFaces: 1
+                });
+                console.log("FaceLandmarker creado.");
+                loadingMessage.textContent = "Iniciando cámara...";
+            } catch (error) { showError(`No se pudo crear FaceLandmarker: ${error}`); }
+         }
+        function euclideanDist(p1, p2) {
+            if (!p1 || !p2 || typeof p1.x !== 'number' || typeof p1.y !== 'number' || typeof p2.x !== 'number' || typeof p2.y !== 'number') return 0;
+            return Math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2);
+        }
+        function calculateEAR(eyeLandmarks) {
+             if (!eyeLandmarks || eyeLandmarks.length !== 6) return 0.5;
+             try {
+                 const p1=eyeLandmarks[0], p2=eyeLandmarks[1], p3=eyeLandmarks[2], p4=eyeLandmarks[3], p5=eyeLandmarks[4], p6=eyeLandmarks[5];
+                 const A = euclideanDist(p2, p6), B = euclideanDist(p3, p5), C = euclideanDist(p1, p4);
+                 if (C === 0) return 0.5;
+                 return (A + B) / (2.0 * C);
+             } catch (e) { console.error("Error EAR:", e); return 0.5; }
+        }
+
+        // --- UI ---
+        function displayCategories() {
+            currentMode = "CATEGORY";
+            categoryListDiv.classList.remove('hidden');
+            wordListDiv.classList.add('hidden');
+            categoryListDiv.querySelector('.list-title').textContent = "Selecciona Categoría";
+            const container = categoryListDiv.querySelector('.list-title').parentNode;
+            container.querySelectorAll('.item').forEach(el => el.remove());
+            categoryElements = [];
+            categories.forEach((category, index) => {
+                const el = document.createElement("span");
+                el.classList.add("item", "category-item");
+                el.textContent = category.name;
+                el.classList.toggle("selected-item-highlight", index === selectedCategoryIndex);
+                container.appendChild(el);
+                categoryElements.push(el);
+            });
+        }
+        function displayWords(categoryIndex) {
+            if (categoryIndex < 0 || categoryIndex >= categories.length) return;
+            currentMode = "WORD";
+            activeCategoryIndex = categoryIndex;
+            const category = categories[categoryIndex];
+            wordListDiv.classList.remove('hidden');
+            categoryListDiv.classList.add('hidden');
+            wordListDiv.querySelector('.list-title').textContent = `Cat: ${category.name}`;
+            const container = wordListDiv.querySelector('.list-title').parentNode;
+            container.querySelectorAll('.item').forEach(el => el.remove());
+            wordElements = [];
+            // Añadir "Volver"
+            const backEl = document.createElement("span");
+            backEl.classList.add("item", "word-item", "back-item");
+            backEl.textContent = BACK_OPTION_TEXT;
+            backEl.classList.toggle("selected-item-highlight", 0 === selectedWordIndex);
+            container.appendChild(backEl);
+            wordElements.push(backEl);
+            // Añadir palabras
+            category.words.forEach((word, index) => {
+                const el = document.createElement("span");
+                el.classList.add("item", "word-item");
+                el.textContent = word;
+                el.classList.toggle("selected-item-highlight", (index + 1) === selectedWordIndex);
+                container.appendChild(el);
+                wordElements.push(el);
+            });
+        }
+
+        // --- Lógica Principal ---
+        async function predictWebcam() {
+            if (!faceLandmarker || !webcamRunning) return;
+            if (video.readyState < 2) { window.requestAnimationFrame(predictWebcam); return; }
+            if (video.currentTime === lastVideoTime && !video.paused) { window.requestAnimationFrame(predictWebcam); return; }
+            lastVideoTime = video.currentTime;
+
+            const startTimeMs = performance.now();
+            let results = undefined;
+            try { results = faceLandmarker.detectForVideo(video, startTimeMs); }
+            catch (error) { console.error("Error detectForVideo:", error); showError("Fallo detección."); return; }
+
+            let avgEAR = 0.5;
+            if (results?.faceLandmarks?.length > 0) {
+                const landmarks = results.faceLandmarks[0];
+                const leftEyeCoords = LEFT_EYE_INDICES.map(i => landmarks[i]).filter(Boolean);
+                const rightEyeCoords = RIGHT_EYE_INDICES.map(i => landmarks[i]).filter(Boolean);
+                if (leftEyeCoords.length === 6 && rightEyeCoords.length === 6) {
+                    avgEAR = (calculateEAR(leftEyeCoords) + calculateEAR(rightEyeCoords)) / 2.0;
+                }
+            }
+
+            // Lógica de Parpadeo
+            if (avgEAR < EYE_AR_THRESH) {
+                if (!isBlinking) isBlinking = true;
+                blinkCounter++;
+            } else {
+                if (isBlinking) { // Fin de parpadeo
+                    if (blinkCounter > LONG_BLINK_THRESHOLD) { // PARPADEO LARGO
+                        if (currentMode === "CATEGORY") {
+                            selectedWordIndex = 0; // Seleccionar "Volver" por defecto
+                            displayWords(selectedCategoryIndex);
+                            selectedWordDisplay.textContent = '';
+                            console.log(`LARGO: Categoría -> "${categories[selectedCategoryIndex].name}". Modo PALABRA.`);
+                        } else { // currentMode === "WORD"
+                            if (selectedWordIndex === 0) { // Seleccionado "Volver"
+                                displayCategories();
+                                selectedWordDisplay.textContent = '';
+                                console.log(`LARGO: ${BACK_OPTION_TEXT}. Modo CATEGORÍA.`);
+                            } else { // Seleccionada palabra real
+                                const actualWordIndex = selectedWordIndex - 1;
+                                const finalWord = categories[activeCategoryIndex].words[actualWordIndex];
+                                selectedWordDisplay.textContent = `"${finalWord}"`;
+                                displayCategories();
+                                console.log(`LARGO: Palabra -> "${finalWord}". Modo CATEGORÍA.`);
+                            }
+                        }
+                    } else if (blinkCounter >= EYE_AR_CONSEC_FRAMES) { // PARPADEO CORTO
+                         if (currentMode === "CATEGORY") {
+                             selectedCategoryIndex = (selectedCategoryIndex + 1) % categories.length;
+                             displayCategories();
+                             selectedWordDisplay.textContent = '';
+                             console.log(`CORTO: Siguiente Categoría -> ${categories[selectedCategoryIndex].name}`);
+                         } else { // currentMode === "WORD"
+                              const totalOptions = categories[activeCategoryIndex].words.length + 1;
+                              selectedWordIndex = (selectedWordIndex + 1) % totalOptions;
+                              displayWords(activeCategoryIndex);
+                              selectedWordDisplay.textContent = '';
+                              const currentSelectionText = (selectedWordIndex === 0) ? BACK_OPTION_TEXT : categories[activeCategoryIndex].words[selectedWordIndex - 1];
+                              console.log(`CORTO: Siguiente Opción -> ${currentSelectionText}`);
+                         }
+                    }
+                    // Resetear
+                    blinkCounter = 0;
+                    isBlinking = false;
+                } else { // Ojo abierto, sin cambio
+                    blinkCounter = 0;
+                    isBlinking = false;
+                }
+            }
+            if (webcamRunning) window.requestAnimationFrame(predictWebcam);
+        }
+
+        // --- INICIALIZACIÓN ---
+        async function initializeApp() {
+            // Asegurarse de que estamos en HTTPS si no es localhost/file
+            if (window.location.protocol !== 'https:' &&
+                window.location.hostname !== 'localhost' &&
+                window.location.hostname !== '127.0.0.1' &&
+                 window.location.protocol !== 'file:') {
+                 showError("El acceso seguro (HTTPS) es necesario para usar la cámara en este dominio.");
+                 loadingMessage.style.display = 'none';
+                 // No continuar si no es seguro
+                 // return; // Descomentar si se quiere bloquear completamente en HTTP
+            }
+
+
+            await createFaceLandmarker();
+            if (!faceLandmarker) return;
+
+            displayCategories(); // Mostrar categorías al inicio
+
+            if (!navigator.mediaDevices?.getUserMedia) { showError("Cámara no soportada por este navegador."); return; }
+
+            try {
+                 const constraints = { video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' } };
+                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                 video.srcObject = stream;
+                 video.addEventListener("loadeddata", () => {
+                    loadingMessage.style.display = 'none'; errorMessage.style.display = 'none';
+                    webcamRunning = true; lastVideoTime = -1;
+                    console.log("Cámara lista, iniciando bucle.");
+                    window.requestAnimationFrame(predictWebcam);
+                 });
+                 video.addEventListener('error', (e) => { showError(`Error video: ${e.message||'?'}`); webcamRunning = false; });
+             } catch (err) {
+                  let message = `Error cámara: ${err.name} - ${err.message}`; // Mensaje por defecto
+
+                  // --- MANEJO DE ERRORES DE PERMISO MEJORADO ---
+                  if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+                      message = "Permiso de cámara denegado. Por favor, ve a la configuración de permisos de este sitio en tu navegador Y/O a la configuración de permisos de la app del navegador en tu dispositivo móvil para permitir el acceso a la cámara. Luego, recarga la página.";
+                  } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+                      message = "No se encontró ninguna cámara conectada.";
+                  } else if (err.name === "NotReadableError") {
+                      message = "La cámara está ocupada por otra app, hubo un error de hardware o necesitas reiniciar el navegador/dispositivo.";
+                  } else if (err.name === "SecurityError") {
+                      message = "Acceso a cámara bloqueado por seguridad. Asegúrate de usar HTTPS o ejecutar como localhost/archivo local.";
+                  } else if (err.name === "AbortError") {
+                      message = "La solicitud de cámara fue abortada, posiblemente por un cambio rápido de página o configuración.";
+                  } else if (err.name === "TypeError") {
+                       message = "Error de configuración de cámara. Las restricciones solicitadas (resolución, etc.) podrían no ser soportadas.";
+                  } // Se podrían añadir más casos específicos si es necesario
+                  // --- FIN MANEJO MEJORADO ---
+
+                   showError(message); // Mostrar el mensaje específico o el por defecto
+                   webcamRunning = false;
+                   loadingMessage.style.display = 'none'; // Ocultar carga si hay error
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>
